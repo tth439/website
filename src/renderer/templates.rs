@@ -1,55 +1,91 @@
-use askama::Template;
-use axum::{
-    extract::{rejection::PathRejection, Path},
-    http::StatusCode,
-    response::{IntoResponse, Headers, Html},
-};
-use http::header::{HeaderName, HeaderValue};
-use percent_encoding::utf8_percent_encode;
-extern crate comrak;
+use axum::response::Html;
 
-#[derive(Template)]
-#[template(path = "index.partial.html")]
-pub(crate) struct IndexTmpl;
-
-#[derive(Template)]
-#[template(path = "blog.partial.html")]
-pub(crate) struct BlogTmpl {
-    posts: Vec<String>,
-}
-
-#[derive(Template)]
-#[template(path = "post.partial.html")]
-pub(crate) struct BlogPostTmpl<'a> {
-    slug: Cow<'static, str>,
-    content: Option<Cow<'static, str>>,
-}
-
-#[derive(Template)]
-#[template(path = "404.html")]
-pub(crate) struct NotFoundTmpl;
-
-pub(crate) struct SiteTemplate<T>(pub(crate) T);
-
-pub(crate) impl<'a> BlogPostTmpl<'a> {
-    pub(crate) fn new(slug: String) -> Self {
-        use std::fs;
-        use comrak::{markdown_to_html, ComrakOptions};
-        let contents = fs::read_to_string(filename).expect("Couldn't find your blog post");
-        Self {slug, content: markdown_to_html(String::from_utf8(contents), &ComrakOptions::default())}
-    }
-}
-
-impl<T> SiteTemplate<T> where T: Template 
-{
-    fn into_response(self) -> Response {
-        match self.0.render() {
-            Ok(html) => Html(html).into_response(),
-            Err(err) => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to render template. Error: {}", err),
-            ).into_response(),
+markup::define! {
+    Header<'a>(title: Option<&'a str>) {
+        header {
+            nav {
+                a [ href = "/"] { "/home" } " * " 
+                a [ href = "/blog"] { "/blog" } " * "
+                a [ href = "/contact"] { "/contact" } " * "
+            }
+            h1 { 
+                @if let Some(title_string) = title {
+                    @title_string
+                }
+            }
         }
     }
+
+    Footer(year: u32) {
+        footer {
+            "(c) " @year
+        }
+    }
+
+    Layout<'a>(title: &'a str, content: &'a str) {
+        @markup::doctype()
+
+        html[lang="en"] {
+
+            head {
+                meta [ charset="utf-8" ] {}
+                meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
+                meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
+                title { @title }
+
+                // script [ src = crate::statics::get_index_js(), type="text/javascript", async=""] {}
+
+                // link [ rel = "stylesheet", type="text/css" , href = crate::statics::get_index_css()] {}
+            }
+            body {
+                @Header { title: Some(title) }
+                main {
+                    {markup::raw(content)}
+                }
+                @Footer { year: 2022 }
+            }
+            
+        }
+    }
+
+    ErrorPage() {
+        @markup::doctype()
+
+        html[lang="en"] {
+
+            head {
+                meta [ charset="utf-8" ] {}
+                meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
+                meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
+                title { "404" }
+
+                // script [ src = crate::statics::get_index_js(), type="text/javascript", async=""] {}
+
+                // link [ rel = "stylesheet", type="text/css" , href = crate::statics::get_index_css()] {}
+            }
+            body {
+                main {
+                    p {
+                        "404 - Not found"
+                    }
+                }
+                @Footer { year: 2022 }
+            }
+            
+        }
+    }
+
 }
 
+pub(crate) fn render_page(title: &str, content: &str) -> Html<String> {
+    let layout = Layout {
+        title,
+        content,
+    };
+    Html(layout.to_string())
+}
+
+pub(crate) fn render_404() -> Html<String> {
+    let layout = ErrorPage{};
+    Html(layout.to_string())
+}
