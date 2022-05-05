@@ -1,9 +1,9 @@
 mod renderer;
-use axum::{
-    extract::connect_info::{self}
-};
+use axum::extract::connect_info::{self};
 use futures::ready;
 use hyper::server::accept::Accept;
+use renderer::routes::build_router;
+use std::net::SocketAddr;
 use std::{
     pin::Pin,
     sync::Arc,
@@ -12,8 +12,6 @@ use std::{
 use tokio::net::{unix::UCred, UnixListener, UnixStream};
 use tower::BoxError;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use renderer::routes::build_router;
-use std::net::SocketAddr;
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
@@ -33,6 +31,7 @@ impl connect_info::Connected<&UnixStream> for UdsConnectInfo {
         }
     }
 }
+
 struct ServerAccept {
     uds: UnixListener,
 }
@@ -41,8 +40,10 @@ impl Accept for ServerAccept {
     type Conn = UnixStream;
     type Error = BoxError;
 
-    fn poll_accept(self: Pin<&mut Self>, cx: &mut Context<'_>)
-     -> Poll<Option<Result<Self::Conn, Self::Error>>> {
+    fn poll_accept(
+        self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+    ) -> Poll<Option<Result<Self::Conn, Self::Error>>> {
         let (stream, _addr) = ready!(self.uds.poll_accept(cx))?;
         Poll::Ready(Some(Ok(stream)))
     }
@@ -51,23 +52,23 @@ impl Accept for ServerAccept {
 #[tokio::main]
 async fn main() {
     tracing_subscriber::registry()
-    .with(tracing_subscriber::EnvFilter::new(
-        std::env::var("RUST_LOG").unwrap_or_else(|_| "debug".into()),
-    ))
-    .with(tracing_subscriber::fmt::layer())
-    .init();
-    
+        .with(tracing_subscriber::EnvFilter::new(
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "debug".into()),
+        ))
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
     let app = build_router();
     match std::env::var("SOCKPATH") {
         Ok(path) => {
             let _ = tokio::fs::remove_file(&path).await;
-        
+
             let uds = UnixListener::bind(path.clone()).unwrap();
             axum::Server::builder(ServerAccept { uds })
                 .serve(app.into_make_service_with_connect_info::<UdsConnectInfo>())
                 .await
                 .unwrap();
-        },
+        }
         Err(_) => {
             let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
             println!("listening on {}", addr);

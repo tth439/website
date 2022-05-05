@@ -1,16 +1,25 @@
+use std::borrow::Cow;
+
 use axum::response::Html;
+
+pub enum ContentType<'a> {
+    Page(&'a str, &'a str),
+    Archive(&'a str, Vec<String>),
+}
 
 markup::define! {
     Header<'a>(title: Option<&'a str>) {
         header {
             nav {
-                a [ href = "/"] { "/home" } " * " 
-                a [ href = "/blog"] { "/blog" } " * "
-                a [ href = "/contact"] { "/contact" } " * "
-            }
-            h1 { 
-                @if let Some(title_string) = title {
-                    @title_string
+                div {
+                    h1 {
+                        @if let Some(title_string) = title {
+                            @title_string
+                        }
+                    }
+                    a [ href = "/"] { "/home" } " * "
+                    a [ href = "/blog"] { "/blog" } " * "
+                    a [ href = "/contact"] { "/contact" }
                 }
             }
         }
@@ -18,74 +27,74 @@ markup::define! {
 
     Footer(year: u32) {
         footer {
-            "(c) " @year
+            "Copyright (c) " @year
         }
     }
 
-    Layout<'a>(title: &'a str, content: &'a str) {
+    Layout<'a>(page: ContentType<'a>) {
         @markup::doctype()
-
         html[lang="en"] {
-
             head {
                 meta [ charset="utf-8" ] {}
                 meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
                 meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
-                title { @title }
-
-                // script [ src = crate::statics::get_index_js(), type="text/javascript", async=""] {}
-
-                // link [ rel = "stylesheet", type="text/css" , href = crate::statics::get_index_css()] {}
+                title { "Muh bloog" }
+                script [ src = "static/js/main.js", type="text/javascript", async="" ] {}
+                link [ rel = "stylesheet", type="text/css" , href = "static/css/main.css" ] {}
             }
             body {
-                @Header { title: Some(title) }
-                main {
-                    {markup::raw(content)}
+                @match &page {
+                    ContentType::Page(ref title, _) | ContentType::Archive(ref title, _) =>  {
+                       @Header {title: Some(title) }
+                    }
                 }
+                main {
+                    @match &page {
+                        ContentType::Page(_, content) => {
+                            p {
+                                @markup::raw(content)
+                            }
+                        }
+                        ContentType::Archive(_, posts) =>  {
+                            ul {
+                                @for p in posts.iter() {
+                                    li { @markup::raw(p) }
+                                }
+                            }
+                        }
+                    }
+                }
+                hr {}
                 @Footer { year: 2022 }
             }
-            
         }
     }
 
-    ErrorPage() {
+    ErrorPage<'a>(uri: &'a str) {
         @markup::doctype()
-
         html[lang="en"] {
-
             head {
                 meta [ charset="utf-8" ] {}
                 meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
                 meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
                 title { "404" }
-
-                // script [ src = crate::statics::get_index_js(), type="text/javascript", async=""] {}
-
-                // link [ rel = "stylesheet", type="text/css" , href = crate::statics::get_index_css()] {}
+                script [ src = "static/js/main.js", type="text/javascript", async="" ] {}
+                link [ rel = "stylesheet", type="text/css" , href = "static/css/main.css" ] {}
             }
             body {
                 main {
-                    p {
-                        "404 - Not found"
-                    }
+                    p { "404 - No route for: " @uri }
                 }
+                hr {}
                 @Footer { year: 2022 }
             }
-            
         }
     }
-
 }
 
-pub(crate) fn render_page(title: &str, content: &str) -> Html<String> {
+pub(crate) fn render_page<'a>(title: &'a str, content: &'a str) -> Html<String> {
     let layout = Layout {
-        title,
-        content,
+        page: ContentType::Page(title, content),
     };
-    Html(layout.to_string())
-}
-
-pub(crate) fn render_404() -> Html<String> {
-    let layout = ErrorPage{};
     Html(layout.to_string())
 }
