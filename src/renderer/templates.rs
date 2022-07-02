@@ -4,7 +4,7 @@ use axum::response::Html;
 
 pub enum ContentType<'a> {
     Page(&'a str, &'a str),
-    Archive(&'a str, Vec<String>),
+    Archive(&'a str, Vec<Option<String>>),
 }
 
 markup::define! {
@@ -36,9 +36,10 @@ markup::define! {
         html[lang="en"] {
             head {
                 meta [ charset="utf-8" ] {}
+                base [ href="http://localhost:3000"] {}
                 meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
                 meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
-                title { "Muh bloog" }
+                title { "☢" }
                 script [ src = "static/js/main.js", type="text/javascript", async="" ] {}
                 link [ rel = "stylesheet", type="text/css" , href = "static/css/main.css" ] {}
             }
@@ -58,7 +59,11 @@ markup::define! {
                         ContentType::Archive(_, posts) =>  {
                             ul {
                                 @for p in posts.iter() {
-                                    li { @markup::raw(p) }
+                                        @if let Some(slug) =  p {
+                                           li {
+                                               a [ href = format!("/blog/{}", slug) ] { @markup::raw(slug) }
+                                           } 
+                                        }
                                 }
                             }
                         }
@@ -92,9 +97,7 @@ markup::define! {
     }
 }
 
-pub(crate) fn render_page<'a>(title: &'a str, content: &'a str) -> Html<String> {
-    let layout = Layout {
-        page: ContentType::Page(title, content),
-    };
+pub(crate) fn render_page<'a>(content: ContentType) -> Html<String> {
+    let layout = Layout {page: content};
     Html(layout.to_string())
 }

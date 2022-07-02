@@ -1,6 +1,6 @@
 #### Skills
 
-- Go, Python, Typescript, Bash, Rust, C, C++, Ruby, Nim
+- Go, Rust, Python, Typescript, Bash, C, C++, Ruby, Lua
 - Podman, Kubernetes, Openshift, Nomad
 - Ansible, Terraform, Vagrant, Packer
 - VMware ESXi, KVM

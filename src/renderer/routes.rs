@@ -1,5 +1,6 @@
-use super::templates::render_page;
+use super::templates::{render_page, ContentType};
 use axum::{
+    extract,
     body::{boxed, Full},
     http::{header, StatusCode, Uri},
     response::{Html, IntoResponse, Response},
@@ -63,21 +64,50 @@ async fn index() -> Html<String> {
         ),
         None => "".to_string(),
     };
-    render_page("Another poorly written blog", &post)
+    let content = ContentType::Page("Another poorly written blog", &post);
+    render_page(content)
+}
+
+async fn archive() -> Html<String> {
+   let file_names: Vec<Option<String>> = Posts::iter().map(|file| {
+       let file: Vec<&str> = file.split('.').collect();
+       if file[0] != "index" {
+            return Some(file[0].to_string())
+       }
+       return None
+   }).collect();
+   let content = ContentType::Archive("Archive", file_names);
+   render_page(content)
+}
+
+//use frontmatter to extract metadata and stuff
+async fn blog(extract::Path(name): extract::Path<String>) -> Html<String> {
+    use comrak::{markdown_to_html, ComrakOptions};
+    let post = match Posts::get(format!("{}.md", name)) {
+        Some(content) => markdown_to_html(
+            &String::from_utf8(content.data.to_vec())
+                .unwrap()
+                .to_string(),
+            &ComrakOptions::default(),
+        ),
+        None => "".to_string(),
+    };
+    let content = ContentType::Page("Another poorly written blog", &post);
+    render_page(content)
 }
 
 async fn fallback_handler(uri: Uri) -> impl IntoResponse {
     (
         StatusCode::NOT_FOUND,
-        render_page("404", format!("no route for: {}", uri.path()).as_str()),
+        render_page(ContentType::Page("404",  format!("no route for: {}", uri.path()).as_str())),
     )
 }
 
 pub fn build_router() -> Router {
     Router::new()
         .route("/", get(index))
-        // .route("/blog", )
-        // .route("/blog/:slug",)
+        .route("/blog", get(archive))
+        .route("/blog/:slug", get(blog))
         // .route("/me", )
         // .route("/rss",)
         // .layer(TraceLayer::new_for_http())
