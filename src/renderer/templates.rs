@@ -6,6 +6,18 @@ pub enum ContentType<'a> {
 }
 
 markup::define! {
+    Head() {
+        head {
+            meta [ charset="utf-8" ] {}
+            base [ href=std::env::var("BASE_URL").unwrap_or("http://localhost:3000".to_string())] {}
+            meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
+            meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
+            title { "☢" }
+            script [ src = "static/index.js", type="text/javascript", async="" ] {}
+            link [ rel = "stylesheet", type="text/css" , href = "static/index.css" ] {}
+        }
+    }
+
     Header<'a>(title: Option<&'a str>) {
         header {
             nav {
@@ -32,15 +44,7 @@ markup::define! {
     Layout<'a>(page: ContentType<'a>) {
         @markup::doctype()
         html[lang="en"] {
-            head {
-                meta [ charset="utf-8" ] {}
-                base [ href=std::env::var("BASE_URL").unwrap_or("http://localhost:3000".to_string())] {}
-                meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
-                meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
-                title { "☢" }
-                script [ src = "static/index.js", type="text/javascript", async="" ] {}
-                link [ rel = "stylesheet", type="text/css" , href = "static/index.css" ] {}
-            }
+            @Head{}
             body {
                 @match &page {
                     ContentType::Page(ref title, _) | ContentType::Archive(ref title, _) =>  {
@@ -76,14 +80,7 @@ markup::define! {
     ErrorPage<'a>(uri: &'a str) {
         @markup::doctype()
         html[lang="en"] {
-            head {
-                meta [ charset="utf-8" ] {}
-                meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
-                meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
-                title { "404" }
-                script [ src = "static/index.js", type="text/javascript", async="" ] {}
-                link [ rel = "stylesheet", type="text/css" , href = "static/index.css" ] {}
-            }
+            @Head{}
 
             body {
                 main {

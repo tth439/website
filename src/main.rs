@@ -1,54 +1,16 @@
 mod renderer;
-use axum::extract::connect_info::{self};
-use futures::ready;
-use hyper::server::accept::Accept;
 use renderer::routes::build_router;
 use std::net::SocketAddr;
-use std::{
-    pin::Pin,
-    sync::Arc,
-    task::{Context, Poll},
-};
-use tokio::net::{unix::UCred, UnixListener, UnixStream};
-use tower::BoxError;
+use tokio::net::UnixListener;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+mod domainsocket;
+use domainsocket::unix::{ServerAccept, UdsConnectInfo};
+use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
+use http::{Request, Response};
+use tracing::Span;
+use std::time::Duration;
 
-#[derive(Clone, Debug)]
-#[allow(dead_code)]
-struct UdsConnectInfo {
-    peer_addr: Arc<tokio::net::unix::SocketAddr>,
-    peer_cred: UCred,
-}
-
-impl connect_info::Connected<&UnixStream> for UdsConnectInfo {
-    fn connect_info(target: &UnixStream) -> Self {
-        let peer_addr = target.peer_addr().unwrap();
-        let peer_cred = target.peer_cred().unwrap();
-
-        Self {
-            peer_addr: Arc::new(peer_addr),
-            peer_cred,
-        }
-    }
-}
-
-struct ServerAccept {
-    uds: UnixListener,
-}
-
-impl Accept for ServerAccept {
-    type Conn = UnixStream;
-    type Error = BoxError;
-
-    fn poll_accept(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<Result<Self::Conn, Self::Error>>> {
-        let (stream, _addr) = ready!(self.uds.poll_accept(cx))?;
-        Poll::Ready(Some(Ok(stream)))
-    }
-}
-
+#[cfg(unix)]
 #[tokio::main]
 async fn main() {
     tracing_subscriber::registry()
@@ -58,7 +20,23 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let app = build_router();
+    let app = build_router()
+        .layer(
+            TraceLayer::new_for_http()
+                .on_request(|request: &Request<_>, _span: &Span| {
+                    tracing::debug!("started {} {}", request.method(), request.uri().path())
+                })
+                .on_response(|_response: &Response<_>, latency: Duration, _span: &Span| {
+                    tracing::debug!("response generated in {:?}", latency)
+                })
+                .on_failure(
+                    |error: ServerErrorsFailureClass, _latency: Duration, _span: &Span| {
+                        let err_str = format!("something went wrong: {}", error);
+                        tracing::debug!(err_str)
+                    },
+                ),
+        );
+
     match std::env::var("SOCKPATH") {
         Ok(path) => {
             let _ = tokio::fs::remove_file(&path).await;
@@ -78,4 +56,9 @@ async fn main() {
                 .unwrap();
         }
     }
+}
+
+#[cfg(not(unix))]
+fn main() {
+    println!("This example requires unix")
 }
