@@ -5,10 +5,12 @@ use axum::{
     http::{header, StatusCode, Uri},
     response::{Html, IntoResponse, Response},
     routing::get,
-    Router,
+    Router,    
 };
+//use chrono::{DateTime, Utc};
 use mime_guess;
 use rust_embed::RustEmbed;
+use serde::{Serialize, Deserialize};
 
 #[derive(RustEmbed)]
 #[folder = "posts/"]
@@ -16,8 +18,16 @@ use rust_embed::RustEmbed;
 struct Posts;
 
 #[derive(RustEmbed)]
-#[folder = "static/"]
+#[folder = "asset-pipeline/dist/"]
 struct Assets;
+
+#[derive(Eq, PartialEq, Deserialize, Default, Debug, Serialize, Clone)]
+struct FrontMatter {
+    title: String,
+    date: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tags: Option<Vec<String>>
+}
 
 pub struct StaticFile<T>(pub T);
 
@@ -83,7 +93,7 @@ async fn archive() -> Html<String> {
 //use frontmatter to extract metadata and stuff
 async fn blog(extract::Path(name): extract::Path<String>) -> Html<String> {
     use comrak::{markdown_to_html, ComrakOptions};
-    let post = match Posts::get(format!("{}.md", name)) {
+    let post = match Posts::get(format!("{}.md", name).as_str()) {
         Some(content) => markdown_to_html(
             &String::from_utf8(content.data.to_vec())
                 .unwrap()

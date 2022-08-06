@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use axum::response::Html;
 
 pub enum ContentType<'a> {
@@ -36,12 +34,12 @@ markup::define! {
         html[lang="en"] {
             head {
                 meta [ charset="utf-8" ] {}
-                base [ href="http://localhost:3000"] {}
+                base [ href=std::env::var("BASE_URL").unwrap_or("http://localhost:3000".to_string())] {}
                 meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
                 meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
                 title { "☢" }
-                script [ src = "static/js/main.js", type="text/javascript", async="" ] {}
-                link [ rel = "stylesheet", type="text/css" , href = "static/css/main.css" ] {}
+                script [ src = "static/index.js", type="text/javascript", async="" ] {}
+                link [ rel = "stylesheet", type="text/css" , href = "static/index.css" ] {}
             }
             body {
                 @match &page {
@@ -83,9 +81,10 @@ markup::define! {
                 meta [ "http-equiv"="X-UA-Compatible", content="IE=edge"] {}
                 meta [ name="viewport", content="width=device-width, initial-scale=1" ] {}
                 title { "404" }
-                script [ src = "static/js/main.js", type="text/javascript", async="" ] {}
-                link [ rel = "stylesheet", type="text/css" , href = "static/css/main.css" ] {}
+                script [ src = "static/index.js", type="text/javascript", async="" ] {}
+                link [ rel = "stylesheet", type="text/css" , href = "static/index.css" ] {}
             }
+
             body {
                 main {
                     p { "404 - No route for: " @uri }
