@@ -9,18 +9,19 @@ use tower_http::{classify::ServerErrorsFailureClass, trace::TraceLayer};
 use http::{Request, Response};
 use tracing::Span;
 use std::time::Duration;
+use axum::Router;
 
-#[cfg(unix)]
-#[tokio::main]
-async fn main() {
+fn init_tracing() {
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
             std::env::var("RUST_LOG").unwrap_or_else(|_| "debug".into()),
         ))
         .with(tracing_subscriber::fmt::layer())
         .init();
+}
 
-    let app = build_router()
+fn build_app() -> Router {
+    build_router()
         .layer(
             TraceLayer::new_for_http()
                 .on_request(|request: &Request<_>, _span: &Span| {
@@ -35,8 +36,15 @@ async fn main() {
                         tracing::debug!(err_str)
                     },
                 ),
-        );
+        )
+}
 
+#[cfg(unix)]
+#[tokio::main]
+async fn main() {
+    init_tracing();
+    let app = build_app();
+    
     match std::env::var("SOCKPATH") {
         Ok(path) => {
             let _ = tokio::fs::remove_file(&path).await;
@@ -60,5 +68,13 @@ async fn main() {
 
 #[cfg(not(unix))]
 fn main() {
-    println!("This example requires unix")
+    init_tracing();
+    let app = build_app();
+    
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+        println!("listening on {}", addr);
+        axum::Server::bind(&addr)
+            .serve(app.into_make_service())
+            .await
+            .unwrap();
 }
