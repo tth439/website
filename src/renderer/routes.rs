@@ -18,7 +18,7 @@ use serde::{Serialize, Deserialize};
 struct Posts;
 
 #[derive(RustEmbed)]
-#[folder = "asset-pipeline/dist/"]
+#[folder = "ui/dist/"]
 struct Assets;
 
 #[derive(Eq, PartialEq, Deserialize, Default, Debug, Serialize, Clone)]

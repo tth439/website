@@ -1,14 +1,34 @@
+html[data-color-scheme="dark"] {
+    --text-color:#f2f2f2;
+    --background: rgb(31 41 55);
+    --special-background-color: rgba(228, 210, 210, 0);
+    --special-color: rgb(114, 124, 141);
+    --link-color: #f2f2f2;
+    --blog-post-color: #8b6fcb;
+    --errorlist-color: #eba613;
+}
+
+html[data-color-scheme="default"] {
+    --text-color: #444;
+    --background: #fff;
+    --special-background-color: #f2f2f2;
+    --special-color: #222;
+    --link-color: #3273dc;
+    --blog-post-color: #8b6fcb;
+    --errorlist-color: #eba613;
+}
+
 body {
     font-family: 'JetBrains Mono', monospace;
     margin: auto;
     padding: 20px;
     max-width: 720px;
     text-align: left;
-    background-color: #fff;
+    background-color: var(--background);
     word-wrap: break-word;
     overflow-wrap: break-word;
     line-height: 1.5;
-    color: #444;
+    color: var(--text-color);
 }
 
 h1,
@@ -19,11 +39,11 @@ h5,
 h6,
 strong,
 b {
-    color: #222;
+    color: var(--special-color);
 }
 
 a {
-    color: #3273dc;
+    color: VAR(--link-color);
     /*color: #ff5e6c;*/
 }
 
@@ -114,16 +134,16 @@ img {
 code {
     font-family: monospace;
     padding: 2px;
-    background-color: #f2f2f2;
-    color: #222;
+    background-color: var(--special-background-color);
+    color: var(--special-color);
     border-radius: 3px;
 }
 
 .highlight,
 .code {
     padding: 1px 15px;
-    background-color: #f2f2f2;
-    color: #222;
+    background-color: var(--special-background-color);
+    color: var(--special-color);
     border-radius: 3px;
     margin-block-start: 1em;
     margin-block-end: 1em;
@@ -131,7 +151,7 @@ code {
 
 blockquote {
     border-left: 1px solid #999;
-    color: #222;
+    color: var(--special-color);
     padding-left: 20px;
     font-style: italic;
 }
@@ -147,7 +167,7 @@ footer {
 }
 
 .errorlist {
-    color: #eba613;
+    color: var(--errorlist-color);
     font-size: small;
 }
 
@@ -197,7 +217,7 @@ ul.post-list li small {
     flex: 0 0 115px;
 }
 
-/* blog posts */
+/* blog postsvar */
 ul.blog-posts {
     list-style-type: none;
     padding: unset;
@@ -212,7 +232,7 @@ ul.blog-posts li span {
 }
 
 ul.blog-posts li a:visited {
-    color: #8b6fcb;
+    color: var(--blog-post-color);
 }
 
 /* discovery feed */
@@ -231,7 +251,7 @@ ul.discover-posts li span {
 }
 
 ul.discover-posts li a:visited {
-    color: #8b6fcb;
+    color: var(--blog-post-color);
 }
 
 ul.discover-posts li div {
