@@ -30,7 +30,7 @@ markup::define! {
                     a [ href = "/"] { "/home" } " * "
                     a [ href = "/blog"] { "/blog" } " * "
                     a [ href = "/contact"] { "/contact" }
-                    button [ id = "darkmode-btn" ] { "☀" }
+                    button [ id = "darkmode-btn", "aria-expanded"="false"] { "☀" }
                 }
             }
         }

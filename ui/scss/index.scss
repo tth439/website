@@ -31,6 +31,14 @@ body {
     color: var(--text-color);
 }
 
+button {
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    background-color: transparent;
+    cursor: pointer;
+}
+
 h1,
 h2,
 h3,
