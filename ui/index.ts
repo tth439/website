@@ -11,12 +11,10 @@ const getPreferredColorScheme = () => {
 const colorScheme = localStorage.getItem("stored-color-scheme") || getPreferredColorScheme();
 document.documentElement.setAttribute("data-color-scheme", colorScheme);
 
+
 document.getElementById("darkmode-btn").onclick = () => {
   const colorScheme = document.documentElement.getAttribute("data-color-scheme");
-  console.log("[!] Theme set to: ", colorScheme)
   const newColorScheme = colorScheme === "default" ? "dark" : "default";
   document.documentElement.setAttribute("data-color-scheme", newColorScheme);
   localStorage.setItem("stored-color-scheme", newColorScheme);
 };
-
-

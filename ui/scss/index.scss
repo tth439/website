@@ -6,6 +6,8 @@ html[data-color-scheme="dark"] {
     --link-color: #f2f2f2;
     --blog-post-color: #8b6fcb;
     --errorlist-color: #eba613;
+    --display-dark: block;
+    --display-light: none;
 }
 
 html[data-color-scheme="default"] {
@@ -16,10 +18,22 @@ html[data-color-scheme="default"] {
     --link-color: #3273dc;
     --blog-post-color: #8b6fcb;
     --errorlist-color: #eba613;
+    --display-dark: none;
+    --display-light: block;
+}
+
+#dark-svg {
+    fill: #f2f2f2;
+    display: var(--display-dark);
+}
+
+#light-svg {
+    display: var(--display-light);
 }
 
 body {
     font-family: 'JetBrains Mono', monospace;
+    font-size: x-large;
     margin: auto;
     padding: 20px;
     max-width: 720px;
@@ -37,6 +51,14 @@ button {
     align-items: center;
     background-color: transparent;
     cursor: pointer;
+}
+
+#menu {
+    list-style-type: none;
+}
+
+#menu li {
+    display: inline;
 }
 
 h1,

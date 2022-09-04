@@ -1,0 +1,15 @@
+@use super::head_html;
+@use super::footer_html;
+
+@<'a>(uri: &'a str)
+
+<html lang="en">   
+    @:head_html()
+<body>
+    <main>
+        <p> 404 - No route for: @uri </p>
+    </main>
+    <hr>
+    @:footer_html(2022)
+</body>
+</html>

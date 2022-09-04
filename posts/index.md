@@ -4,5 +4,5 @@
 - Podman, Kubernetes, Openshift, Nomad
 - Ansible, Terraform, Vagrant, Packer
 - VMware ESXi, KVM
-- OSPF, IS-IS, BGP, MPLS
+- OSPF, IS-IS, BGP, MPLS, NSX-T
 - Security, pentesting, CTFs

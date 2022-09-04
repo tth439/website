@@ -1,0 +1,17 @@
+@use super::head_html;
+@use super::footer_html;
+@use super::header_html;
+
+@<'a>(page: Content, title: &'a str)
+
+<html lang="en"> 
+    @:head_html()
+<body>
+    @:header_html(Some(title))
+    <main>
+        @:page()
+    </main>
+    <hr>
+    @:footer_html(2022)
+</body>
+</html>

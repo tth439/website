@@ -1,0 +1,7 @@
+@use super::layout_html;
+
+@<'a>(content: &'a dyn ToHtml, title: &'a str)
+
+@:layout_html({
+    @content
+}, title)

@@ -78,3 +78,5 @@ fn main() {
             .await
             .unwrap();
 }
+
+include!(concat!(env!("OUT_DIR"), "/templates.rs"));

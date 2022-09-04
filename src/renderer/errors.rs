@@ -1,4 +1,5 @@
 use std::fmt;
+
 pub enum CustomError {
     ParserFailure(String),
     HashingFailure(String),

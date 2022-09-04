@@ -1,0 +1,16 @@
+@use super::statics::*;
+@()
+
+<head>
+    <meta charset="utf-8" />
+    @if let Ok(base_url) = std::env::var("BASE_URL") {
+        <base href="@base_url" />
+    } else {
+        <base href="http://localhost:3000" />
+    }
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title > ☢ TTH439 </title>
+    <script src="static/@index_js.name" type="text/javascript" async="" ></script>
+    <link rel = "stylesheet" type="text/css"  href = "static/@index_css.name"></link>
+</head>

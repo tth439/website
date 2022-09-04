@@ -1,0 +1,13 @@
+@use super::layout_html;
+
+@<'a>(posts:  Vec<Option<String>>, title: &'a str)
+
+@:layout_html({
+    <ul>
+        @for p in posts.iter() {
+            @if let Some(slug) = p {
+                <li><a href='@format!("/blog/{}", slug)'> @slug </a></li>
+            }
+        }
+    </ul>
+}, "archive")

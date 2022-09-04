@@ -1,25 +1,21 @@
-use super::templates::{render_page, ContentType};
 use axum::{
     extract,
-    body::{boxed, Full},
-    http::{header, StatusCode, Uri},
+    body::{boxed, Full, Body},
+    http::{header, HeaderValue, StatusCode, Uri},
     response::{Html, IntoResponse, Response},
     routing::get,
     Router,    
 };
 //use chrono::{DateTime, Utc};
-use mime_guess;
 use rust_embed::RustEmbed;
 use serde::{Serialize, Deserialize};
+use crate::templates;
 
 #[derive(RustEmbed)]
 #[folder = "posts/"]
 #[include = "*.md"]
 struct Posts;
 
-#[derive(RustEmbed)]
-#[folder = "ui/dist/"]
-struct Assets;
 
 #[derive(Eq, PartialEq, Deserialize, Default, Debug, Serialize, Clone)]
 struct FrontMatter {
@@ -27,6 +23,17 @@ struct FrontMatter {
     date: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     tags: Option<Vec<String>>
+}
+
+fn render<F>(f: F) -> Html<&'static str>
+where
+    F: FnOnce(&mut Vec<u8>) -> Result<(), std::io::Error>,
+{
+    let mut buf = Vec::new();
+    f(&mut buf).expect("Error rendering template");
+    let html: String = String::from_utf8_lossy(&buf).into();
+
+    Html(Box::leak(html.into_boxed_str()))
 }
 
 pub struct StaticFile<T>(pub T);
@@ -38,12 +45,11 @@ where
     fn into_response(self) -> Response {
         let path = self.0.into();
 
-        match Assets::get(path.as_str()) {
-            Some(content) => {
-                let body = boxed(Full::from(content.data));
-                let mime = mime_guess::from_path(path).first_or_octet_stream();
+        match templates::statics::StaticFile::get(path.as_str()) {
+            Some(data) => {
+                let body = boxed(Body::from(data.content));
                 Response::builder()
-                    .header(header::CONTENT_TYPE, mime.as_ref())
+                    .header(header::CONTENT_TYPE, HeaderValue::from_str(data.mime.as_ref()).unwrap())
                     .body(body)
                     .unwrap()
             }
@@ -63,7 +69,7 @@ async fn static_handler(uri: Uri) -> impl IntoResponse {
     StaticFile(path)
 }
 
-async fn index() -> Html<String> {
+async fn index<'a>() -> Html<&'a str> {
     use comrak::{markdown_to_html, ComrakOptions};
     let post = match Posts::get("index.md") {
         Some(content) => markdown_to_html(
@@ -74,11 +80,10 @@ async fn index() -> Html<String> {
         ),
         None => "".to_string(),
     };
-    let content = ContentType::Page("Another poorly written blog", &post);
-    render_page(content)
+    render(|buf| {templates::index(buf, &templates::Html(post), "Another poorly written blog")})
 }
 
-async fn archive() -> Html<String> {
+async fn archive<'a>() -> Html<&'a str> {
    let file_names: Vec<Option<String>> = Posts::iter().map(|file| {
        let file: Vec<&str> = file.split('.').collect();
        if file[0] != "index" {
@@ -86,12 +91,11 @@ async fn archive() -> Html<String> {
        }
        return None
    }).collect();
-   let content = ContentType::Archive("Archive", file_names);
-   render_page(content)
+   render(|buf| {templates::archive(buf, file_names, "Archive")})
 }
 
 //use frontmatter to extract metadata and stuff
-async fn blog(extract::Path(name): extract::Path<String>) -> Html<String> {
+async fn blog<'a>(extract::Path(name): extract::Path<String>) -> Html<&'a str> {
     use comrak::{markdown_to_html, ComrakOptions};
     let post = match Posts::get(format!("{}.md", name).as_str()) {
         Some(content) => markdown_to_html(
@@ -102,14 +106,13 @@ async fn blog(extract::Path(name): extract::Path<String>) -> Html<String> {
         ),
         None => "".to_string(),
     };
-    let content = ContentType::Page("Another poorly written blog", &post);
-    render_page(content)
+    render(|buf| {templates::index(buf, &templates::Html(post), "efrgerg")})
 }
 
 async fn fallback_handler(uri: Uri) -> impl IntoResponse {
     (
         StatusCode::NOT_FOUND,
-        render_page(ContentType::Page("404",  format!("no route for: {}", uri.path()).as_str())),
+        render(|buf| {templates::error(buf, uri.path())}),
     )
 }
 
