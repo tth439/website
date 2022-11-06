@@ -69,7 +69,17 @@ h5,
 h6,
 strong,
 b {
+    display: flex;
     color: var(--special-color);
+}
+
+h2::after {
+	flex: 1;
+	height: 10px;
+	content: '';
+	margin-left: 1rem;
+    margin-top: 10px;
+	background-color: #000;
 }
 
 a {

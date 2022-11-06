@@ -1,9 +1,13 @@
+use std::error::Error;
 use std::fmt;
 
+#[derive(Eq, PartialEq, Debug, Clone)]
 pub enum CustomError {
     ParserFailure(String),
     HashingFailure(String),
 }
+
+impl Error for CustomError {}
 
 impl fmt::Display for CustomError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

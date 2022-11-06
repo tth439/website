@@ -1,8 +1,17 @@
 #### Skills
 
-- Go, Rust, Python, Typescript, Bash, C, C++, Ruby, Lua
-- Podman, Kubernetes, Openshift, Nomad
-- Ansible, Terraform, Vagrant, Packer
-- VMware ESXi, KVM
-- OSPF, IS-IS, BGP, MPLS, NSX-T
-- Security, pentesting, CTFs
+- **Programming** 
+    Go, Rust, Python, Typescript, Bash, C, C++, Ruby, Lua
+
+- **Devops** 
+    Podman, Kubernetes, Openshift, Nomad, Gitlab CI
+
+- **Config management** 
+    Ansible, Terraform, Vagrant, Packer, SaltStack
+
+- **Virtualization** 
+    VMware ESXi, KVM
+
+- **Networking** 
+    OSPF, IS-IS, BGP, MPLS, NSX-T
+

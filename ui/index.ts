@@ -1,4 +1,4 @@
-import './scss/index.scss'
+import './scss/index.scss';
 
 const getPreferredColorScheme = () => {
   const darkQuery = "(prefers-color-scheme: dark)";
@@ -11,8 +11,7 @@ const getPreferredColorScheme = () => {
 const colorScheme = localStorage.getItem("stored-color-scheme") || getPreferredColorScheme();
 document.documentElement.setAttribute("data-color-scheme", colorScheme);
 
-
-document.getElementById("darkmode-btn").onclick = () => {
+document.getElementById("darkmode-btn")!.onclick = () => {
   const colorScheme = document.documentElement.getAttribute("data-color-scheme");
   const newColorScheme = colorScheme === "default" ? "dark" : "default";
   document.documentElement.setAttribute("data-color-scheme", newColorScheme);
